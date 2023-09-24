@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "eurostat-graphs"
+version = "0.1.0"
+description = ""
+authors = ["Jarkko Lagus <jalagus@gmail.com>"]
+readme = "README.md"
+packages = [{include = "eurostat_graphs"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+eurostat = "^1.0.4"
+plotly = "^5.17.0"
+shiny = "^0.5.1"
+shinywidgets = "^0.2.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
