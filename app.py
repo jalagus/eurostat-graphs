@@ -39,8 +39,6 @@ filtered_data = full_data[
     (full_data["na_item"] == "TE")
 ]
 
-print(filtered_data.columns)
-
 app_ui = ui.page_fluid(
     ui.panel_title("Country budget comparisons (data source: Eurostat)"),
     ui.layout_sidebar(
