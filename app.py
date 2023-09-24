@@ -1,9 +1,10 @@
 import pathlib
 import pickle
 import eurostat
+import asyncio
 
 import pandas as pd
-from shiny import ui, App
+from shiny import ui, App, reactive, render
 from shinywidgets import output_widget, render_widget
 import plotly.express as px
 
@@ -13,6 +14,7 @@ def filter_data(full_data: pd.DataFrame, filters: dict):
     for filter_key, filter_value in filters.items():
         filtered_data = filtered_data[filtered_data[filter_key] == filter_value]
     return filtered_data
+
 
 def get_eurostat_data(cache_path: pathlib.Path = pathlib.Path("data.cache")):
     eurostat_code = "GOV_10A_EXP"
@@ -42,7 +44,9 @@ def get_eurostat_data(cache_path: pathlib.Path = pathlib.Path("data.cache")):
 
 
 full_data, cat_titles_dict, geo_titles_dict = get_eurostat_data()
-filtered_data = filter_data(full_data, {"sector": "S13", "unit": "PC_GDP", "na_item": "TE"})
+filtered_data = filter_data(
+    full_data, {"sector": "S13", "unit": "PC_GDP", "na_item": "TE"}
+)
 
 uniq_countries = full_data["geo\TIME_PERIOD"].unique().tolist()
 geo_titles_dict = {
@@ -75,6 +79,7 @@ app_ui = ui.page_fluid(
             ui.input_select(
                 "country", label="Country", choices=geo_titles_dict, multiple=True
             ),
+            ui.download_button("download_data", "Download data", class_="btn-primary"),
         ),
         ui.panel_main(output_widget("my_widget")),
     ),
@@ -112,6 +117,21 @@ def server(input, output, session):
         fig.update_xaxes(tickformat=".2%")
         fig.layout.height = 900
         return fig
+
+    @session.download(filename=lambda: f"data.csv")
+    async def download_data():
+        plot_data = filtered_data[
+            filtered_data["geo\TIME_PERIOD"]
+            .apply(lambda x: x in input.country())
+            .tolist()
+        ]
+        plot_data = plot_data[
+            plot_data["cofog99"].apply(lambda x: x in input.plot_cat_code()).tolist()
+        ]
+        await asyncio.sleep(0.25)
+
+        csv_rows = plot_data.to_csv()
+        yield csv_rows
 
 
 app = App(app_ui, server)
