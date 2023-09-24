@@ -4,7 +4,7 @@ import eurostat
 import asyncio
 
 import pandas as pd
-from shiny import ui, App, reactive, render
+from shiny import ui, App
 from shinywidgets import output_widget, render_widget
 import plotly.express as px
 
@@ -56,9 +56,12 @@ geo_titles_dict = {
 }
 cat_titles_dict = {k: v for k, v in sorted(cat_titles_dict.items(), key=lambda x: x[1])}
 
+home_tab = ui.nav("About",
+    ui.panel_title("Welcome to Eurostat visualizer"), 
+)
 
-app_ui = ui.page_fluid(
-    ui.panel_title("Country budget comparisons (data source: Eurostat)"),
+budget_tab = ui.nav("Budget comparisons",
+    ui.panel_title("Country budget comparisons"),
     ui.layout_sidebar(
         ui.panel_sidebar(
             ui.input_slider(
@@ -80,8 +83,19 @@ app_ui = ui.page_fluid(
                 "country", label="Country", choices=geo_titles_dict, multiple=True
             ),
             ui.download_button("download_data", "Download data", class_="btn-primary"),
+            ui.div(
+                ui.span("Data source: "), 
+                ui.a("Eurostat", href_="https://ec.europa.eu/eurostat", target_="_blank")
+            ),
         ),
         ui.panel_main(output_widget("my_widget")),
+    ),
+)
+
+app_ui = ui.page_fluid(
+    ui.navset_tab_card(
+        home_tab,
+        budget_tab
     ),
     ui.div("COPYRIGHT © 2023 JARKKO LAGUS - ALL RIGHTS RESERVED"),
 )
@@ -109,13 +123,16 @@ def server(input, output, session):
             x="value",
             y="category",
             color="country",
-            text_auto=".2s",
-            title=f"Budget as a percentage of GDP ({input.year()}):",
+            text_auto=".2%",
+            title=f"Budget as a percentage of GDP ({input.year()})",
             barmode="group",
             labels={"category": "", "value": "% GDP", "country": "Country"},
         )
         fig.update_xaxes(tickformat=".2%")
-        fig.layout.height = 900
+        fig.update_layout(
+            font={"size": 15}
+        )
+        fig.layout.height = 220 + len(input.plot_cat_code()) * (len(input.country()) * 30)
         return fig
 
     @session.download(filename=lambda: f"data.csv")
