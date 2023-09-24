@@ -61,7 +61,7 @@ home_tab = ui.nav("About",
 )
 
 budget_tab = ui.nav("Budget comparisons",
-    ui.panel_title("Country budget comparisons"),
+    ui.panel_title("Budget comparisons by country"),
     ui.layout_sidebar(
         ui.panel_sidebar(
             ui.input_slider(
@@ -78,9 +78,10 @@ budget_tab = ui.nav("Budget comparisons",
                 label="Category",
                 choices={k: v for k, v in cat_titles_dict.items() if len(k) < 5},
                 multiple=True,
+                size=7
             ),
             ui.input_select(
-                "country", label="Country", choices=geo_titles_dict, multiple=True
+                "country", label="Country", choices=geo_titles_dict, multiple=True, size=7
             ),
             ui.download_button("download_data", "Download data", class_="btn-primary"),
             ui.div(
